@@ -2,10 +2,18 @@
 
 import main.*;
 
+val book_keeper = rell.test.keypair(
+    priv = x"2C8D33288966D07F82DA25740CEA4EC34566A907EF3CE30FF3B5480B5CBFCB9E",
+    pub = x"02C5ECBC560251D6DA4163C1D8BB31B1756392A5B13117C718B5D68EF01D2785B6"
+);
+
+val bob = rell.test.keypairs.bob;
+
 function test_add_book() {
     rell.test.tx()
              .op(create_book("123", "book1", "author1"))
              .op(create_book("124", "book2", "author2"))
+             .sign(book_keeper)
              .run();
 
     val all_books = book @* {};
@@ -20,6 +28,7 @@ function test_add_book_review() {
              .op(create_book("123", "book1", "author1"))
              .op(create_book_review("123", "reviewer1", "reviewText1", 5))
              .op(create_book_review("123", "reviewer2", "reviewText2", 3))
+             .sign(book_keeper)
              .run();
     val reviews = book_review @* {};
     val book = book @ {.isbn == "123"};
@@ -35,4 +44,11 @@ function test_add_book_review_for_missing_book() {
     rell.test.tx()
              .op(create_book_review("ISBN12345", "reviewer1", "reviewText1", 4))
              .run_must_fail("book with isbn ISBN12345 not found");
+}
+
+function test_add_book_as_non_admin() {
+    rell.test.tx()
+             .op(create_book("123", "book1", "author1"))
+             .sign(bob)
+             .run_must_fail();
 }

@@ -1,8 +1,12 @@
 module;
 
+struct module_args {
+    admin_pubkey: byte_array;
+}
+
 entity book {
     key isbn: text;
-    title: text;
+    mutable title: text;
     author: text;
 }
 
@@ -20,7 +24,26 @@ struct book_review_struct {
     rating: integer;
 }
 
+struct tx_op {
+    op_name: text;
+    op_args: list<gtv>;
+}
+
+struct tx_body {
+    tx_rid: byte_array;
+    ops: list<tx_op>;
+    signers: list<byte_array>;
+}
+
+struct tx {
+    tx_body;
+    signatures: list<byte_array>;
+}
+
+
 operation create_book(isbn: text, title: text, author: text) {
+    val adminPubkey = chain_context.args.admin_pubkey;
+    require(op_context.is_signer(adminPubkey), "only admin allowed to create books");
     create book (isbn = isbn, title = title, author = author);
 }
 
@@ -36,6 +59,7 @@ operation create_book_review(isbn: text, reviewer_name: text, review: text, rati
 query get_book_reviews(isbn: text) {
     require( book @? { .isbn == isbn } , "book with isbn %s not found".format(isbn) );
     return book_review @* { .book.isbn == isbn } (
+        @sort_desc .rating,
         book_review_struct(
             book = .book.to_struct(),
             .reviewer_name,
@@ -43,4 +67,34 @@ query get_book_reviews(isbn: text) {
             .rating
         )
     );
+}
+
+query get_reviews_by_rating(rating: integer) {
+    return book_review @* { .rating == rating } (
+        .book.to_struct(),
+        .reviewer_name,
+        .review,
+        .rating
+    );
+}
+
+query get_all_book_reviews() {
+    return book_review @* {} (
+        .book.to_struct(),
+        .reviewer_name,
+        .review,
+        .rating
+    );
+}
+
+query get_all_transactions() {
+    val txs = transaction @* {} (gtv.from_bytes(.tx_data));
+    return list<tx>.from_gtv(txs.to_gtv());
+}
+
+operation update_book(isbn: text, title: text) {
+    val adminPubkey = chain_context.args.admin_pubkey;
+    require(op_context.is_signer(adminPubkey), "only admins can update books");
+
+    update book @ { .isbn == isbn } ( .title = title );
 }

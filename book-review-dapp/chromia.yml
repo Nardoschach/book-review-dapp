@@ -1,6 +1,9 @@
 blockchains:
   book-review-dapp:
     module: main
+    moduleArgs:
+      main:
+        admin_pubkey: "02C5ECBC560251D6DA4163C1D8BB31B1756392A5B13117C718B5D68EF01D2785B6"
 compile:
   rellVersion: 0.13.5
 database:
@@ -8,3 +11,6 @@ database:
 test:
   modules:
     - test
+  moduleArgs:
+    main:
+      admin_pubkey: "02C5ECBC560251D6DA4163C1D8BB31B1756392A5B13117C718B5D68EF01D2785B6"
