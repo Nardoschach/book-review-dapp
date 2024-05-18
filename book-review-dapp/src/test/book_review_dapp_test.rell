@@ -14,3 +14,19 @@ function test_add_book() {
     assert_equals(all_books[0].title, "book1");
     assert_equals(all_books[1].author, "author2");
 }
+
+function test_add_book_review() {
+    rell.test.tx()
+             .op(create_book("123", "book1", "author1"))
+             .op(create_book_review("123", "reviewer1", "reviewText1", 5))
+             .op(create_book_review("123", "reviewer2", "reviewText2", 3))
+             .run();
+    val reviews = book_review @* {};
+    val book = book @ {.isbn == "123"};
+
+    assert_equals(reviews.size(), 2);
+    assert_equals(reviews[0].book, book);
+    assert_equals(reviews[0].reviewer_name, "reviewer1");
+    assert_equals(reviews[0].review, "reviewText1");
+    assert_equals(reviews[0].rating, 5);
+}
