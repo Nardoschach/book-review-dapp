@@ -13,6 +13,13 @@ entity book_review {
     rating: integer;
 }
 
+struct book_review_struct {
+    book: struct<book>;
+    reviewer_name: text;
+    review: text;
+    rating: integer;
+}
+
 operation create_book(isbn: text, title: text, author: text) {
     create book (isbn = isbn, title = title, author = author);
 }
@@ -22,10 +29,18 @@ query get_all_books(){
 }
 
 operation create_book_review(isbn: text, reviewer_name: text, review: text, rating: integer) {
-    val book = book @ { .isbn == isbn };
+    val book = require( book @? { .isbn == isbn }, "book with isbn %s not found".format(isbn));
     create book_review(book, reviewer_name, review, rating);
 }
 
 query get_book_reviews(isbn: text) {
-    return book_review @* { .book.isbn == isbn } (.reviewer_name, .review, .rating);
+    require( book @? { .isbn == isbn } , "book with isbn %s not found".format(isbn) );
+    return book_review @* { .book.isbn == isbn } (
+        book_review_struct(
+            book = .book.to_struct(),
+            .reviewer_name,
+            .review,
+            .rating
+        )
+    );
 }

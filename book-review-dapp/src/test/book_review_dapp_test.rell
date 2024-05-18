@@ -30,3 +30,9 @@ function test_add_book_review() {
     assert_equals(reviews[0].review, "reviewText1");
     assert_equals(reviews[0].rating, 5);
 }
+
+function test_add_book_review_for_missing_book() {
+    rell.test.tx()
+             .op(create_book_review("ISBN12345", "reviewer1", "reviewText1", 4))
+             .run_must_fail("book with isbn ISBN12345 not found");
+}
