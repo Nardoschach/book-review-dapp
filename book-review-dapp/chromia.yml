@@ -1,0 +1,10 @@
+blockchains:
+  book-review-dapp:
+    module: main
+compile:
+  rellVersion: 0.13.5
+database:
+  schema: schema_book_review_dapp
+test:
+  modules:
+    - test

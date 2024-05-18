@@ -1,0 +1,15 @@
+module;
+
+entity book {
+    key isbn: text;
+    title: text;
+    author: text;
+}
+
+operation create_book(isbn: text, title: text, author: text) {
+    create book (isbn = isbn, title = title, author = author);
+}
+
+query get_all_books(){
+    return book @* {} (.isbn, .title, .author);
+}
